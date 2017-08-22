@@ -1,0 +1,37 @@
+{
+    "name": "denismitr/laravel-elasticsearch",
+    "description": "Laravel Elasticsearch Integration",
+    "keywords": ["laravel", "scout", "elasticsearch", "elastic", "driver"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Denis Mitrofanov",
+            "email": "denis.mitr@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0",
+        "elasticsearch/elasticsearch": "^5.3",
+        "laravel/scout": "^3.0"
+    },
+    "require-dev": {
+        "fzaninotto/faker": "^1.7",
+        "phpunit/phpunit": "^6.3",
+        "mockery/mockery": "^0.9.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Denismitr\\ElasticEngine\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Denismitr\\ElasticEngine\\Test\\": "test"
+        }
+    },
+    "suggest": {
+        "elasticsearch/elasticsearch": "Required to use the Elasticsearch engine (^5.0)."
+    },
+    "minimum-stability": "dev"
+}
