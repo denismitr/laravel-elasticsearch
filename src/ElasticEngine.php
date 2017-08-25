@@ -37,7 +37,7 @@ class ElasticEngine extends Engine
     {
         $params['body'] = [];
 
-        $models->each(function() use (&$params) {
+        $models->each(function($model) use (&$params) {
             $params['body'][] = [
                 'update' => [
                     '_id' => $model->getKey(),
@@ -175,9 +175,7 @@ class ElasticEngine extends Engine
                         'must' => [
                             [
                                 'query_string' => [
-                                    'query' => [
-                                        "*{$builder->query}*"
-                                    ]
+                                    'query' => "*{$builder->query}*"
                                 ]
                             ]
                         ]
@@ -199,7 +197,10 @@ class ElasticEngine extends Engine
         }
 
         if (isset($options['numericFilters']) && count($options['numericFilters'])) {
-            $params['body']['query']['bool']['must'] = array_merge($params['body']['query']['bool']['must'], $options['numericFilters']);
+            $params['body']['query']['bool']['must'] = array_merge(
+                $params['body']['query']['bool']['must'],
+                $options['numericFilters']
+            );
         }
 
         if ($builder->callback) {
@@ -229,5 +230,22 @@ class ElasticEngine extends Engine
 
             return ['match_phrase' => [$key => $value]];
         })->values()->all();
+    }
+
+    /**
+     * Implements the sorting if required.
+     *
+     * @param  Builder $builder
+     * @return array|null
+     */
+    protected function sort(Builder $builder)
+    {
+        if (count($builder) === 0) {
+            return null;
+        }
+
+        return collect($builder->orders)->map(function($order) {
+            return [$order['column'] => $order['direction']];
+        })->toArray();
     }
 }

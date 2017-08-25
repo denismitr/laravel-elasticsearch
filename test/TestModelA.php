@@ -4,7 +4,7 @@ namespace Denismitr\ElasticEngine\Test;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ElasticsearchEngineTestModel extends Model
+class TestModelA extends Model
 {
     public function getIdAttribute()
     {
