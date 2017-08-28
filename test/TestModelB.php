@@ -4,11 +4,11 @@ namespace Denismitr\ElasticEngine\Test;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TestModelA extends Model
+class TestModelB extends Model
 {
     public function getIdAttribute()
     {
-        return 1;
+        return 2;
     }
 
     public function searchableAs()
@@ -18,11 +18,11 @@ class TestModelA extends Model
 
     public function getKey()
     {
-        return '1';
+        return '2';
     }
 
     public function toSearchableArray()
     {
-        return ['id' => 1];
+        return ['id' => 2];
     }
 }

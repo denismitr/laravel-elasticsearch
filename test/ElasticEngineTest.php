@@ -16,7 +16,7 @@ class ElasticEngineTest extends TestCase
     {
         parent::setUp();
 
-        $this->client = m::mock('Elasticsearch\Client');
+        $this->client = m::mock(\Elasticsearch\Client::class);
     }
 
     public function tearDown()
@@ -33,7 +33,7 @@ class ElasticEngineTest extends TestCase
                     'update' => [
                         '_id' => 1,
                         '_index' => 'scout',
-                        '_type' => 'table',
+                        '_type' => 'test_table_a',
                     ]
                 ],
                 [
@@ -56,7 +56,7 @@ class ElasticEngineTest extends TestCase
                     'delete' => [
                         '_id' => 1,
                         '_index' => 'scout',
-                        '_type' => 'table'
+                        '_type' => 'test_table_a'
                     ]
                 ]
             ]
@@ -71,13 +71,13 @@ class ElasticEngineTest extends TestCase
     {
         $this->client->shouldReceive('search')->with([
             'index' => 'scout',
-            'type' => 'table',
+            'type' => 'test_table_a',
             'body' => [
                 'query' => [
                     'bool' => [
                         'must' => [
-                            ['query_string' => ['query' => '*zonda*']],
-                            ['match_phrase' => ['foo' => 1]],
+                            ['query_string' => ['query' => '*denis*']],
+                            ['match_phrase' => ['foo' => 'bar']],
                             ['terms' => ['bar' => [1, 3]]],
                         ]
                     ]
@@ -90,9 +90,9 @@ class ElasticEngineTest extends TestCase
 
         $engine = new ElasticEngine($this->client, 'scout');
 
-        $builder = new Builder(new TestModelA, 'zonda');
+        $builder = new Builder(new TestModelA, 'denis');
 
-        $builder->where('foo', 1);
+        $builder->where('foo', 'bar');
         $builder->where('bar', [1, 3]);
         $builder->orderBy('id', 'desc');
         $engine->search($builder);
@@ -104,6 +104,7 @@ class ElasticEngineTest extends TestCase
         $this->client->shouldReceive('search')->with('modified_by_callback')->once();
 
         $engine = new ElasticEngine($this->client, 'scout');
+
         $builder = new Builder(
             new TestModelA,
             'test query',
@@ -117,5 +118,63 @@ class ElasticEngineTest extends TestCase
         );
 
         $engine->search($builder);
+    }
+
+    /** @test */
+    public function it_maps_correctly_result_to_the_model()
+    {
+        $engine = new ElasticEngine($this->client, 'scout');
+
+        $model = m::mock(Illuminate\Database\Eloquent\Model::class);
+        $model->shouldReceive('getKeyName')->andReturn('id');
+        $model->shouldReceive('whereIn')->with('id', ['1'])->once()->andReturn($model);
+        $model->shouldReceive('get')->once()->andReturn(Collection::make([new TestModelA]));
+
+        $results = $engine->map([
+            'hits' => [
+                'total' => 1,
+                'hits' => [
+                    [
+                        '_id' => 1
+                    ]
+                ]
+            ]
+        ], $model);
+
+        $this->assertCount(1, $results);
+    }
+
+    /** @test */
+    public function it_maps_correctly_results_to_the_models()
+    {
+        $engine = new ElasticEngine($this->client, 'scout');
+
+        $testModelA = new TestModelA;
+        $testModelB = new TestModelB;
+
+        $model = m::mock(Illuminate\Database\Eloquent\Model::class);
+        $model->shouldReceive('getKeyName')->andReturn('id');
+        $model->shouldReceive('whereIn')->with('id', ['1', '2'])->once()->andReturn($model);
+        $model->shouldReceive('get')->once()->andReturn(
+            Collection::make([$testModelA, $testModelB])
+        );
+
+        $results = $engine->map([
+            'hits' => [
+                'total' => 1,
+                'hits' => [
+                    [
+                        '_id' => 1
+                    ],
+                    [
+                        '_id' => 2
+                    ]
+                ]
+            ]
+        ], $model);
+
+        $this->assertCount(2, $results);
+        $this->assertTrue($results->contains($testModelA));
+        $this->assertTrue($results->contains($testModelB));
     }
 }
